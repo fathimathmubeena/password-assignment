@@ -1,0 +1,49 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	implementation 'org.springframework.boot:spring-boot-starter-validation'
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	compileOnly 'org.projectlombok:lombok'
+//	annotationProcessor 'org.projectlombok:lombok'
+//	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:2.3.1.RELEASE'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'mysql:mysql-connector-java:5.1.48'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.hibernate:hibernate-validator-annotation-processor:6.1.6.Final'
+//	compile group: 'org.glassfish.main.bean-validator-cdi', name: 'bean-validator-cdi', version: '5.1.0'
+////Thanks for using https://jar-download.com
+
+}
+
+test {
+    useJUnitPlatform()
+}
