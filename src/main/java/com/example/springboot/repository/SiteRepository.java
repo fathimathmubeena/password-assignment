@@ -10,13 +10,19 @@ import java.util.Optional;
 
 @Repository
 public interface SiteRepository extends JpaRepository<SiteTable, Long> {
-    @Query(value = "select * from site_tbl where name LIKE :name%", nativeQuery = true)
-    public List<SiteTable> getSitesLike(String name);
+    @Query(value = "select * from site_tbl where name LIKE :name% and mobile = :mobile", nativeQuery = true)
+    public List<SiteTable> getSitesLike(String name, Long mobile);
 
-    @Query(value = "select name from site_tbl", nativeQuery = true)
-    public List<String> getAllNames();
+    @Query(value = "select * from site_tbl where mobile = :mobile", nativeQuery = true)
+    public List<SiteTable> findAllOfUser(Long mobile);
 
-    @Query(value = "select * from site_tbl where name = :name", nativeQuery = true)
-    public Optional<SiteTable> getSite(String name);
+    @Query(value = "select name from site_tbl where mobile = :mobile", nativeQuery = true)
+    public List<String> getAllNames(Long mobile);
+
+    @Query(value = "select * from site_tbl where id = :id and mobile = :mobile", nativeQuery = true)
+    public Optional<SiteTable> getSite(Long id, Long mobile);
+
+    @Query(value = "select * from site_tbl where folder_id = :id and mobile = :mobile", nativeQuery = true)
+    public List<SiteTable> getAllSitesByFolder(Long id, Long mobile);
 
 }

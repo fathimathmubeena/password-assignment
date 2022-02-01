@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class ExceptionHandlers {
 
-    @ExceptionHandler(SiteNotFoundException.class)
+    @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
-    public ResponseWrapper handleSiteNotFoundException(SiteNotFoundException siteNotFoundException) {
+    public ResponseWrapper handleSiteNotFoundException(NotFoundException siteNotFoundException) {
         return new ResponseWrapper(siteNotFoundException.getResult(), null);
     }
 
@@ -24,10 +24,10 @@ public class ExceptionHandlers {
         return new ResponseWrapper(duplicateNameException.getResult(), null);
     }
 
-    @ExceptionHandler(InvalidNumberException.class)
+    @ExceptionHandler(InvalidException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ResponseBody
-    public ResponseWrapper handleInvalidNumberException(InvalidNumberException invalidNumberException) {
+    public ResponseWrapper handleInvalidNumberException(InvalidException invalidNumberException) {
         return new ResponseWrapper(invalidNumberException.getResult(), null);
     }
 

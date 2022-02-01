@@ -5,14 +5,18 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class User {
+public class OldUser {
     @NotNull
-    private Long mobile;
+    private Long username;
     @NotNull
-    private Long mpin;
+    private Long password;
 
 
     public UserTable toUserTable() {
-        return new UserTable(this.mobile, this.mpin);
+        return new UserTable(this.username, this.password);
     }
 }
+
+
+
+

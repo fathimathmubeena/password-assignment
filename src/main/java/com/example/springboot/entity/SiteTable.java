@@ -20,7 +20,10 @@ public class SiteTable {
     private String name;
     private String username;
     private String password;
+    @Column(name = "folderId")
+    private Long folderId;
     private String notes;
+    private Long mobile;
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;
@@ -28,17 +31,19 @@ public class SiteTable {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    public SiteTable(Long id, String url, String name, String username, String password, String notes) {
+    public SiteTable(Long id, String url, String name, String username, String password, Long folderId, String notes, Long mobile) {
         this.id = id;
         this.url = url;
         this.name = name;
         this.username = username;
         this.password = password;
+        this.folderId = folderId;
         this.notes = notes;
+        this.mobile = mobile;
     }
 
     public Site toSite() {
-        return new Site(this.id, this.url, this.name, this.username, this.password, this.notes);
+        return new Site(this.id, this.url, this.name, this.username, this.password, this.folderId, this.notes, this.mobile);
     }
 }
 

@@ -18,9 +18,9 @@ import java.time.Instant;
 @NoArgsConstructor
 public class UserTable {
     @Id
-    @Column(name = "mobile_no", unique = true)
-    private Long mobile;
-    private Long mpin;
+    @Column(unique = true)
+    private Long username;
+    private Long password;
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;
@@ -28,9 +28,9 @@ public class UserTable {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    public UserTable(Long mobile, Long mpin) {
-        this.mobile = mobile;
-        this.mpin = mpin;
+    public UserTable(Long username, Long password) {
+        this.username = username;
+        this.password = password;
     }
 
 //    public User toUser() {

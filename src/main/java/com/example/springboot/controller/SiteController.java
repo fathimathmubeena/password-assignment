@@ -3,62 +3,106 @@ package com.example.springboot.controller;
 
 import com.example.springboot.constants.ResultInfoConstants;
 import com.example.springboot.controller.response.ResponseWrapper;
+import com.example.springboot.entity.Folder;
 import com.example.springboot.entity.Site;
 import com.example.springboot.service.SiteService;
+import com.example.springboot.utility.JWTUser;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 @RequestMapping("/site")
 public class SiteController {
-    @Autowired
-    private SiteService siteService;
+
+    private final SiteService siteService;
+
+
+    private final JWTUser jwtUser;
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<Long> add(@RequestBody @Valid Site site) {
+    public ResponseWrapper<Long> add(@RequestBody @Valid Site site, HttpServletRequest request) {
         log.info("Received request to add site :{}", site);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.add(site));
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.add(site, Long.parseLong(jwtUser.getId(request))));
     }
 
-    @GetMapping("/search/{name}")
+    @PostMapping("/folder/create")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<List<Site>> search(@PathVariable @NotBlank String name) {
+    public ResponseWrapper<Long> createFolder(@RequestBody @Valid Folder folder, HttpServletRequest request) {
+        log.info("Received request to create folder :{}", folder);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.createFolder(folder, Long.parseLong(jwtUser.getId(request))));
+    }
+
+    @GetMapping("/folder/all")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseWrapper<List<Folder>> showAllFolders(HttpServletRequest request) {
+        log.info("Received request to show all folders");
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.showAllFolders(Long.parseLong(jwtUser.getId(request))));
+    }
+
+    //@GetMapping("/search/{name}")
+    @RequestMapping(value = "/search/name/{name}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseWrapper<List<Site>> search(@PathVariable @NotBlank String name, HttpServletRequest request) {
         log.info("Received request to search site starts with name: {}", name);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.search(name));
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.search(name, Long.parseLong(jwtUser.getId(request))));
+    }
+
+    @RequestMapping(value = "/search/id/{id}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseWrapper<Site> searchById(@PathVariable @NotNull Long id, HttpServletRequest request) {
+        log.info("Received request to search site of id: {}", id);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.searchById(id, Long.parseLong(jwtUser.getId(request))));
     }
 
     @GetMapping("/show")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<List<Site>> showAll() {
+    public ResponseWrapper<List<Site>> showAll(HttpServletRequest request) {
         log.info("Received request to show all sites");
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.showAll());
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.showAll(Long.parseLong(jwtUser.getId(request))));
     }
 
-    @PutMapping("/update/{name}")
+    //@GetMapping("/show/folder/{id}")
+    @RequestMapping(value = "/show/folder/{id}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<Site> update(@RequestBody @Valid Site site, @PathVariable @NotBlank String name) {
-        log.info("Received request to update site details of site name: {}", site.getName());
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.update(site, name));
+    public ResponseWrapper<List<Site>> showAllByFolder(@PathVariable Long id, HttpServletRequest request) {
+        log.info("Received request to show all sites in the given folder : {}", id);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.showAllByFolder(id, Long.parseLong(jwtUser.getId(request))));
     }
 
-    @DeleteMapping("/remove/{name}")
+    //@PutMapping("/update/{name}")
+    @RequestMapping(value = "/update/{id}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<String> remove(@PathVariable @Valid String name) {
-        log.info("Received request to remove the site details of site name: {}", name);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.remove(name));
+    public ResponseWrapper<Long> update(@RequestBody @Valid Site site, @PathVariable @NotBlank Long id, HttpServletRequest request) {
+        log.info("Received request to update site details of site id: {}", site.getId());
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.update(site, id, Long.parseLong(jwtUser.getId(request))));
+    }
+
+    // @DeleteMapping("/remove/{name}")
+    @RequestMapping(value = "/remove/{id}", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseWrapper<Long> remove(@PathVariable @Valid Long id, HttpServletRequest request) {
+        log.info("Received request to remove the site details of site id: {}", id);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, siteService.remove(id, Long.parseLong(jwtUser.getId(request))));
     }
 
 }

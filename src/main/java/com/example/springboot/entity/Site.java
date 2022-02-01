@@ -20,9 +20,11 @@ public class Site {
     private final String username;
     @NotBlank
     private final String password;
+    private final Long folderId;
     private final String notes;
+    private final Long mobile;
 
     public SiteTable toSiteTable() {
-        return new SiteTable(this.id, this.url, this.name, this.username, this.password, this.notes);
+        return new SiteTable(this.id, this.url, this.name, this.username, this.password, this.folderId, this.notes, this.mobile);
     }
 }
