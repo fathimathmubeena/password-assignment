@@ -1,18 +1,19 @@
 package com.example.springboot.service;
 
 import com.example.springboot.constants.ResultInfoConstants;
-import com.example.springboot.entity.OldUser;
-import com.example.springboot.entity.OneTimePassword;
+import com.example.springboot.entity.OneTimePasswordTable;
+import com.example.springboot.entity.User;
 import com.example.springboot.entity.UserTable;
-import com.example.springboot.exception.DuplicateKeyException;
+import com.example.springboot.entity.Validator;
 import com.example.springboot.exception.InvalidException;
+import com.example.springboot.exception.NotFoundException;
+import com.example.springboot.repository.OtpRepository;
 import com.example.springboot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
-import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -22,137 +23,87 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final OneTimePassword oneTimePassword;
+
+    private final Validator validator;
+
+    private final OtpRepository otpRepository;
+
+    public Long create(Long username, Long password) {
 
 
-    public Long create(@Valid OldUser user) {
-        Long mobileNumber = user.getUsername();
-        Long mPin = user.getPassword();
-        String mobile = mobileNumber.toString();
-        String mpin = mPin.toString();
-        if (mobile.length() != 10) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
+        if (validator.validateMobile(username)) {
+            throw new InvalidException(ResultInfoConstants.DUPLICATE_NUMBER);
+
         }
-        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-        if (allMobiles.contains(mobileNumber)) {
-            throw new DuplicateKeyException(ResultInfoConstants.DUPLICATE_NUMBER);
-        }
-        if (mpin.length() != 4) {
+        if (!validator.validateMpin(password)) {
             throw new InvalidException(ResultInfoConstants.INVALID_MPIN);
         }
-        Long otp = generateOtp(mobileNumber);
-        userRepository.save(user.toUserTable()).getUsername();
+        UserTable userTable = new UserTable(username, password);
+
+        userRepository.save(userTable).getUsername();
+        Long userId = userTable.getId();
+        Long otp = generateOtp(userId);
         return otp;
     }
 
-    public Long generateOtp(Long mobileNumber) {
-        String mobile = mobileNumber.toString();
-        if (mobile.length() != 10) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
+    public long getOtp(Long userId) {
+        return ThreadLocalRandom.current().nextLong(1000, 1000000);
+    }
+
+    public Long generateOtp(Long userId) {
+        if (!validator.validateId(userId)) {
+            throw new NotFoundException(ResultInfoConstants.USER_NOT_FOUND);
         }
-        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-        if (!allMobiles.contains(mobileNumber)) {
-            throw new InvalidException(ResultInfoConstants.NUMBER_DOES_NOT_EXIST);
-        }
-        Long otp = ThreadLocalRandom.current().nextLong(1000, 1000000);
+        Long otp = getOtp(userId);
         log.info("The Otp generated is: {}", otp);
-        oneTimePassword.setPassword(otp);
-        oneTimePassword.setMobile(mobileNumber);
+        Optional<OneTimePasswordTable> optionalOneTimePasswordTable = otpRepository.findByUserId(userId);
+        if (!optionalOneTimePasswordTable.isPresent()) {
+            OneTimePasswordTable oneTimePasswordTable = new OneTimePasswordTable(userId);
+            oneTimePasswordTable.setPassword(otp);
+            otpRepository.save(oneTimePasswordTable);
+            return otp;
+        }
+        OneTimePasswordTable oneTimePasswordTable = optionalOneTimePasswordTable.get();
+        oneTimePasswordTable.setPassword(otp);
+        otpRepository.save(oneTimePasswordTable);
         return otp;
     }
 
-    public Long validOtp(Long otp) {
-        Long generatedOtp = oneTimePassword.getPassword();
+    public Long validOtp(Long otp, Long userId) {
+        Optional<OneTimePasswordTable> optionalOneTimePasswordTable = otpRepository.findByUserId(userId);
+        Long generatedOtp = optionalOneTimePasswordTable.get().getPassword();
         Long enteredOtp = otp;
         if (!generatedOtp.equals(enteredOtp)) {
             throw new InvalidException(ResultInfoConstants.INVALID_OTP);
         }
-        return oneTimePassword.getMobile();
+        return userId;
     }
 
 
-    public Long login(@Valid OldUser user) {
-        Long mobileNumber = user.getUsername();
-        Long mPin = user.getPassword();
-        String mobile = mobileNumber.toString();
-        if (mobile.length() != 10) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
+    public User forgotPassword(Long userId) {
+        if (!validator.validateId(userId)) {
+            throw new NotFoundException(ResultInfoConstants.USER_NOT_FOUND);
         }
-        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-        if (!allMobiles.contains(mobileNumber)) {
-            throw new InvalidException(ResultInfoConstants.NUMBER_DOES_NOT_EXIST);
-        }
-        Long mpin = userRepository.getMpin(mobileNumber);
-        if (!mpin.equals(mPin)) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MPIN);
-        }
-        UserTable userTable = userRepository.getUser(mobileNumber);
-        userRepository.save(userTable);
-        return mobileNumber;
+        UserTable userTable = userRepository.getUserById(userId);
+        Long id = userTable.getId();
+        Long otp = generateOtp(id);
+
+        return userTable.toUser();
     }
 
-    public Long signout(Long mobile) {
-        String mobileNumber = mobile.toString();
-        if (mobileNumber.length() != 10) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
-        }
-        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-        if (!allMobiles.contains(mobile)) {
-            throw new InvalidException(ResultInfoConstants.USER_NOT_FOUND);
-        }
-        UserTable userTable = userRepository.getUser(mobile);
-        userRepository.save(userTable);
-        return mobile;
-    }
-
-//    public Long delete(Long mobile) {
-//        String mobileNumber = mobile.toString();
-//        if (mobileNumber.length() != 10) {
-//            throw new InvalidNumberException(ResultInfoConstants.INVALID_MOBILE);
-//        }
-//        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-//        if (!allMobiles.contains(mobile)) {
-//            throw new InvalidNumberException(ResultInfoConstants.USER_NOT_FOUND);
-//        }
-//       userRepository.deleteAccount(mobile);
-//        return mobile;
-//    }
-
-    public Long forgotPassword(Long mobile) {
-        String mobileNumber = mobile.toString();
-        if (mobileNumber.length() != 10) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
-        }
-        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-        if (!allMobiles.contains(mobile)) {
-            throw new InvalidException(ResultInfoConstants.USER_NOT_FOUND);
-        }
-        Long otp = generateOtp(mobile);
-        UserTable userTable = userRepository.getUser(mobile);
-        userRepository.save(userTable);
-        return otp;
-    }
-
-    public Long changePassword(OldUser user) {
+    public Long changePassword(User user) {
         Long mobile = user.getUsername();
         Long newPin = user.getPassword();
 
-        String mobileNumber = mobile.toString();
-        if (mobileNumber.length() != 10) {
-            throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
-        }
-        List<Long> allMobiles = userRepository.getAllMobileNumbers();
-        if (!allMobiles.contains(mobile)) {
-            throw new InvalidException(ResultInfoConstants.USER_NOT_FOUND);
-        }
-        String mpin = newPin.toString();
-        if (mpin.length() != 4) {
+        Long userId = user.getId();
+
+        if (!validator.validateMpin(newPin)) {
             throw new InvalidException(ResultInfoConstants.INVALID_MPIN);
         }
-        UserTable oldUserTable = userRepository.getUser(mobile);
+        Long id = userRepository.getIdByUsername(mobile);
+        userRepository.changePasswordById(newPin, id);
 
-        oldUserTable.setPassword(newPin);
-        userRepository.save(oldUserTable);
-        return mobile;
+
+        return id;
     }
 }

@@ -12,16 +12,16 @@ public class Folder {
     private final Long id;
     @NotBlank
     private final String name;
-    private final Long mobile;
+    private final Long userId;
 
 
-    public Folder(Long id, String name, Long mobile) {
+    public Folder(Long id, String name, Long userId) {
         this.id = id;
         this.name = name;
-        this.mobile = mobile;
+        this.userId = userId;
     }
 
     public FolderTable toFolderTable() {
-        return new FolderTable(this.id, this.name, this.mobile);
+        return new FolderTable(this.id, this.name, this.userId);
     }
 }

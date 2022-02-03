@@ -3,7 +3,8 @@ package com.example.springboot.controller;
 import com.example.springboot.constants.ResultInfoConstants;
 import com.example.springboot.controller.response.ResponseWrapper;
 import com.example.springboot.entity.JWTResponse;
-import com.example.springboot.entity.OldUser;
+import com.example.springboot.entity.User;
+import com.example.springboot.exception.InvalidException;
 import com.example.springboot.service.CustomUserDetailsService;
 import com.example.springboot.service.UserService;
 import com.example.springboot.utility.JWTUtility;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,20 +36,21 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/authenticate")
-    public JWTResponse authenticate(@RequestBody OldUser user) throws Exception {
+    public JWTResponse authenticate(@RequestHeader("username") Long username, @RequestHeader("password") Long password) throws Exception {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            user.getUsername(),
-                            user.getPassword()
+
+                            username,
+                            password
                     )
             );
         } catch (BadCredentialsException e) {
-            throw new Exception("Invalid Credential", e);
+            throw new InvalidException(ResultInfoConstants.BAD_CREDENTIAL);
         }
 
         final UserDetails userDetails
-                = customUserDetailsService.loadUserByUsername(user.getUsername().toString());
+                = customUserDetailsService.loadUserByUsername(username.toString());
         final String token = jwtUtility.generateToken(userDetails);
         return new JWTResponse(token);
     }
@@ -55,17 +58,19 @@ public class UserController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<Long> create(@RequestBody @Valid OldUser user) {
-        log.info("Received request to craete account :{}", user);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.create(user));
+//    public ResponseWrapper<Long> create(@RequestBody @Valid User user) {
+    public ResponseWrapper<Long> create(@RequestHeader("username") Long username, @RequestHeader("password") Long password) {
+        log.info("Received request to craete account :{},{}", username, password);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.create(username, password));
     }
 
-    @GetMapping("/otp/{id}")
+
+    @RequestMapping(value = "/otp/{otp}/{id}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<Long> validOtp(@PathVariable @NotNull Long id) {
-        log.info("Received request to enter otp :{}", id);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.validOtp(id));
+    public ResponseWrapper<Long> validOtp(@PathVariable @NotNull Long otp, @PathVariable @NotNull Long id) {
+        log.info("Received request to enter otp :{}", otp);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.validOtp(otp, id));
     }
 
     @GetMapping("/generate/{username}")
@@ -76,43 +81,20 @@ public class UserController {
         return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.generateOtp(username));
     }
 
-    @PutMapping("/login")
+
+    @GetMapping("/forgot_password/{userId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<Long> login(@RequestBody @Valid OldUser user) {
-        log.info("Received request to login account :{}", user);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.login(user));
+    public ResponseWrapper<User> forgotPassword(@PathVariable @NotNull Long userId) {
+        log.info("Received request to reset password for username number :{}", userId);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.forgotPassword(userId));
     }
 
-    @PutMapping("/signout/{username}")
+    @PutMapping("/change_password")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<String> signout(@PathVariable @NotNull Long username) {
-        log.info("Received request to remove the user account of username number: {}", username);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.signout(username));
-    }
-
-//    @DeleteMapping ("/delete/{username}")
-//    @ResponseStatus(HttpStatus.OK)
-//    @ResponseBody
-//    public ResponseWrapper<String> delete(@PathVariable @NotNull Long username) {
-//        log.info("Received request to remove the account of username : {}", username);
-//        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.delete(username));
-//    }
-
-
-    @GetMapping("/forgot/{username}")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseWrapper<Long> forgotPassword(@PathVariable @NotNull Long username) {
-        log.info("Received request to reset password for username number :{}", username);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.forgotPassword(username));
-    }
-
-    @PutMapping("/change")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseWrapper<Long> changePassword(@RequestBody @Valid OldUser user) {
+    @Transactional
+    public ResponseWrapper<Long> changePassword(@RequestBody @Valid User user) {
         log.info("Received request to change password for username number :{}", user.getUsername());
         return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.changePassword(user));
     }

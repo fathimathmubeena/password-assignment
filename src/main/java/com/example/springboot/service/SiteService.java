@@ -12,6 +12,7 @@ import com.example.springboot.repository.SiteRepository;
 import com.example.springboot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,33 +33,30 @@ public class SiteService {
 
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
-    public List<Site> showAll(Long mobile) {
-        return siteRepository.findAllOfUser(mobile)
+    //#spring.data.web.pageable.page-parameter = PageNumber
+//#spring.data.web.pageable.size-parameter = PageSize
+    public List<Site> showAll(Long userId, Pageable page) {
+        return siteRepository.showAllByUserId(userId, page)
                 .stream()
                 .map(SiteTable::toSite)
                 .collect(Collectors.toList());
     }
 
-    public Long add(Site site, Long mobile) {
-//        List<String> oldNames = siteRepository.getAllNames(mobile);
-//        String newName = site.getName();
-//        if (oldNames.stream().anyMatch(newName::equalsIgnoreCase)) {
-//            log.warn("This name: {} is already used in other sites, Please give other names");
-//            throw new DuplicateKeyException(ResultInfoConstants.DUPLICATE_NAME);
-//        }
-        List<Long> allFolders = folderRepository.getAllFolderIds(mobile);
+    public Long add(Site site, Long userId) {
+        List<Long> allFolders = folderRepository.findAllFolderIdsByUserId(userId);
         if (!allFolders.contains(site.getFolderId())) {
             log.warn("The given folder doesn't exist");
             throw new NotFoundException(ResultInfoConstants.FOLDER_NOT_FOUND);
         }
         SiteTable siteTable = site.toSiteTable();
-        siteTable.setMobile(mobile);
+        siteTable.setUserId(userId);
+        siteTable.setUsername((bCryptPasswordEncoder.encode((site.getUsername()))));
         siteTable.setPassword((bCryptPasswordEncoder.encode((site.getPassword()))));
         return siteRepository.save(siteTable).getId();
     }
 
-    public List<Site> search(String name, Long mobile) {
-        List<SiteTable> optionalSiteTable = siteRepository.getSitesLike(name, mobile);
+    public List<Site> search(String name, Long userId) {
+        List<SiteTable> optionalSiteTable = siteRepository.showSitesLike(name, userId);
         if (optionalSiteTable.size() == 0) {
             log.warn("There is no Sites stored with name:{}", name);
             throw new NotFoundException(ResultInfoConstants.SITE_NOT_FOUND);
@@ -66,8 +64,8 @@ public class SiteService {
         return optionalSiteTable.stream().map(SiteTable::toSite).collect(Collectors.toList());
     }
 
-    public Site searchById(Long id, Long mobile) {
-        Optional<SiteTable> optionalSiteTable = siteRepository.getSite(id, mobile);
+    public Site searchById(Long id, Long userId) {
+        Optional<SiteTable> optionalSiteTable = siteRepository.getSite(id, userId);
         if (!optionalSiteTable.isPresent()) {
             log.warn("There is no Sites stored with id:{}", id);
             throw new NotFoundException(ResultInfoConstants.SITE_NOT_FOUND);
@@ -75,30 +73,29 @@ public class SiteService {
         return optionalSiteTable.get().toSite();
     }
 
-    public Long update(Site site, Long id, Long mobile) {
-        Optional<SiteTable> optionalSiteTable = siteRepository.getSite(id, mobile);
+    public Long update(Site site, Long id, Long userId) {
+        Optional<SiteTable> optionalSiteTable = siteRepository.getSite(id, userId);
         if (!optionalSiteTable.isPresent()) {
             log.warn("There is no Sites stored with id:{}", id);
             throw new NotFoundException(ResultInfoConstants.SITE_NOT_FOUND);
         }
-        List<Long> allFolders = folderRepository.getAllFolderIds(mobile);
+        List<Long> allFolders = folderRepository.findAllFolderIdsByUserId(userId);
         if (!allFolders.contains(site.getFolderId())) {
             log.warn("The given folder doesn't exist");
             throw new NotFoundException(ResultInfoConstants.FOLDER_NOT_FOUND);
         }
 
         SiteTable oldSiteTable = optionalSiteTable.get();
-        SiteTable newSiteTable = site.toSiteTable();
+        SiteTable newSiteTable = site.toSiteTable(oldSiteTable.getId(), userId);
         newSiteTable.setCreatedAt(oldSiteTable.getCreatedAt());
-        newSiteTable.setId(oldSiteTable.getId());
-        newSiteTable.setMobile(mobile);
+        newSiteTable.setUsername((bCryptPasswordEncoder.encode((site.getUsername()))));
         newSiteTable.setPassword((bCryptPasswordEncoder.encode((site.getPassword()))));
         siteRepository.save(newSiteTable);
         return newSiteTable.toSite().getId();
     }
 
-    public Long remove(Long id, Long mobile) {
-        Optional<SiteTable> optionalSiteTable = siteRepository.getSite(id, mobile);
+    public Long remove(Long id, Long userId) {
+        Optional<SiteTable> optionalSiteTable = siteRepository.getSite(id, userId);
         if (!optionalSiteTable.isPresent()) {
             log.warn("There is no Sites stored with id:{}", id);
             throw new NotFoundException(ResultInfoConstants.SITE_NOT_FOUND);
@@ -109,26 +106,26 @@ public class SiteService {
 
 // Folder Methods
 
-    public Long createFolder(Folder folder, Long mobile) {
-        List<String> allFolders = folderRepository.getAllFolders(mobile);
+    public Long createFolder(Folder folder, Long userId) {
+        List<String> allFolders = folderRepository.findAllFolderNamesByUserId(userId);
         if (allFolders.contains(folder.getName())) {
             log.warn("This folder already exists :{}", folder.getName());
             throw new DuplicateKeyException(ResultInfoConstants.FOLDER_EXISTS);
         }
         FolderTable folderTable = folder.toFolderTable();
-        folderTable.setMobile(mobile);
+        folderTable.setUserId(userId);
         return folderRepository.save(folderTable).getId();
     }
 
-    public List<Folder> showAllFolders(Long mobile) {
-        return folderRepository.showAllOfUser(mobile)
+    public List<Folder> showAllFolders(Long userId) {
+        return folderRepository.findAllByUserId(userId)
                 .stream()
                 .map(FolderTable::toFolder)
                 .collect(Collectors.toList());
     }
 
-    public List<Site> showAllByFolder(Long id, Long mobile) {
-        return siteRepository.getAllSitesByFolder(id, mobile)
+    public List<Site> showAllByFolder(Long id, Long userId) {
+        return siteRepository.getAllSitesByFolder(id, userId)
                 .stream()
                 .map(SiteTable::toSite)
                 .collect(Collectors.toList());

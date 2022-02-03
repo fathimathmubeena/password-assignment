@@ -1,23 +1,22 @@
 package com.example.springboot.entity;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.Instant;
 
 
 @Entity
 @Table(name = "user_tbl")
 @Data
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class UserTable {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Column(unique = true)
     private Long username;
     private Long password;
@@ -33,7 +32,8 @@ public class UserTable {
         this.password = password;
     }
 
-//    public User toUser() {
-//        return new User(this.mobile,this.mpin);
-//    }
+    public User toUser() {
+        return new User(this.id, this.username, this.password);
+    }
+
 }

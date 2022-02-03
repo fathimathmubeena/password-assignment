@@ -1,21 +1,26 @@
 package com.example.springboot.utility;
 
+import com.example.springboot.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-
+@RequiredArgsConstructor
 @Component
 public class JWTUtility implements Serializable {
+
+    private final UserRepository userRepository;
     public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
     private static final long serialVersionUID = 234234523523L;
     @Value("${jwt.secret}")
@@ -72,5 +77,21 @@ public class JWTUtility implements Serializable {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public Long getId(HttpServletRequest httpServletRequest) {
+        String authorization = httpServletRequest.getHeader("Authorization");
+        String token = null;
+        String username = null;
+        Long id = null;
+
+        if (null != authorization && authorization.startsWith("Bearer ")) {
+            token = authorization.substring(7);
+            username = getUsernameFromToken(token);
+
+        }
+        Long userName = Long.parseLong(username);
+        id = userRepository.getIdByUsername(userName);
+        return id;
     }
 }

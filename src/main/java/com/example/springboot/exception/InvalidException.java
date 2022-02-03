@@ -4,6 +4,6 @@ import com.example.springboot.controller.response.ResultInfo;
 import lombok.Data;
 
 @Data
-public class InvalidNumberException extends RuntimeException {
+public class InvalidException extends RuntimeException {
     private final ResultInfo result;
 }

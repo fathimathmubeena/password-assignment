@@ -4,6 +4,6 @@ import com.example.springboot.controller.response.ResultInfo;
 import lombok.Data;
 
 @Data
-public class SiteNotFoundException extends RuntimeException {
+public class NotFoundException extends RuntimeException {
     private final ResultInfo result;
 }

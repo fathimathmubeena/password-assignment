@@ -13,14 +13,16 @@ public class FolderTable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private Long mobile;
+    @Column(name = "user_id")
+    private Long userId;
 
-    public FolderTable(Long id, String name, Long mobile) {
+    public FolderTable(Long id, String name, Long userId) {
         this.id = id;
         this.name = name;
+        this.userId = userId;
     }
 
     public Folder toFolder() {
-        return new Folder(this.id, this.name, this.mobile);
+        return new Folder(this.id, this.name, this.userId);
     }
 }

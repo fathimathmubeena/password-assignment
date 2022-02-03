@@ -27,12 +27,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final JWTFilter jwtFilter;
 
     private final UserDetailsService userDetailsService;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
-
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -60,16 +58,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
 
-//        http.csrf().disable().authorizeRequests()
-//                .antMatchers("/").permitAll()
-//                .antMatchers("/user/**")
-//                .permitAll()
-//                .antMatchers("/site/**")
-//                .permitAll()
-//                .anyRequest().permitAll()
-//                .and()
-//                .httpBasic();
     }
-
 
 }

@@ -7,12 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface FolderRepository extends JpaRepository<FolderTable, Long> {
-    @Query(value = "select name from folder_tbl where mobile = :mobile", nativeQuery = true)
-    public List<String> getAllFolders(Long mobile);
+    @Query(value = "select name from folder_tbl where user_id = :id", nativeQuery = true)
+    public List<String> findAllFolderNamesByUserId(Long id);
 
-    @Query(value = "select * from folder_tbl where mobile = :mobile", nativeQuery = true)
-    public List<FolderTable> showAllOfUser(Long mobile);
+    @Query(value = "select * from folder_tbl where user_id = :id", nativeQuery = true)
+    public List<FolderTable> findAllByUserId(Long id);
 
-    @Query(value = "select id from folder_tbl where mobile = :mobile", nativeQuery = true)
-    public List<Long> getAllFolderIds(Long mobile);
+    @Query(value = "select id from folder_tbl where user_id = :id", nativeQuery = true)
+    public List<Long> findAllFolderIdsByUserId(Long id);
 }
