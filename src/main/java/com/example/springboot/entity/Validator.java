@@ -12,33 +12,19 @@ public class Validator {
     private final UserRepository userRepository;
 
     public final boolean validateId(Long userId) {
-        int count = userRepository.checkUserExistsById(userId);
-        if (count == 0) {
-            return false;
-        } else {
-            return true;
-        }
+        return userRepository.checkUserExistsById(userId) != 0;
     }
 
-    public final boolean validateMobile(Long mobile) {
+    public final boolean validateUsername(Long mobile) {
         String mobileNumber = mobile.toString();
         if (mobileNumber.length() != 10) {
             throw new InvalidException(ResultInfoConstants.INVALID_MOBILE);
         }
-        int count = userRepository.checkUserExistsByUsername(mobile);
-        if (count == 0) {
-            return false;
-        } else {
-            return true;
-        }
+        return userRepository.checkUserExistsByUsername(mobile) != 0;
     }
 
-    public final boolean validateMpin(Long pin) {
+    public final boolean validatePassword(Long pin) {
         String mpin = pin.toString();
-        if (mpin.length() != 4) {
-            return false;
-        } else {
-            return true;
-        }
+        return mpin.length() == 4;
     }
 }

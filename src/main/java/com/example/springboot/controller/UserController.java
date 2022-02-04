@@ -36,7 +36,7 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/authenticate")
-    public JWTResponse authenticate(@RequestHeader("username") Long username, @RequestHeader("password") Long password) throws Exception {
+    public JWTResponse authenticate(@RequestHeader Long username, @RequestHeader Long password) throws Exception {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -58,8 +58,7 @@ public class UserController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-//    public ResponseWrapper<Long> create(@RequestBody @Valid User user) {
-    public ResponseWrapper<Long> create(@RequestHeader("username") Long username, @RequestHeader("password") Long password) {
+    public ResponseWrapper<Long> create(@RequestHeader Long username, @RequestHeader Long password) {
         log.info("Received request to craete account :{},{}", username, password);
         return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.create(username, password));
     }
@@ -73,12 +72,12 @@ public class UserController {
         return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.validOtp(otp, id));
     }
 
-    @GetMapping("/generate/{username}")
+    @GetMapping("/generate/{userId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseWrapper<Long> generateOtp(@PathVariable @NotNull Long username) {
-        log.info("Received request to generate otp for username: {}", username);
-        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.generateOtp(username));
+    public ResponseWrapper<Long> generateOtp(@PathVariable @NotNull Long userId) {
+        log.info("Received request to generate otp for username: {}", userId);
+        return new ResponseWrapper(ResultInfoConstants.SUCCESS, userService.generateOtp(userId));
     }
 
 

@@ -31,11 +31,11 @@ public class UserService {
     public Long create(Long username, Long password) {
 
 
-        if (validator.validateMobile(username)) {
+        if (validator.validateUsername(username)) {
             throw new InvalidException(ResultInfoConstants.DUPLICATE_NUMBER);
 
         }
-        if (!validator.validateMpin(password)) {
+        if (!validator.validatePassword(password)) {
             throw new InvalidException(ResultInfoConstants.INVALID_MPIN);
         }
         UserTable userTable = new UserTable(username, password);
@@ -97,7 +97,7 @@ public class UserService {
 
         Long userId = user.getId();
 
-        if (!validator.validateMpin(newPin)) {
+        if (!validator.validatePassword(newPin)) {
             throw new InvalidException(ResultInfoConstants.INVALID_MPIN);
         }
         Long id = userRepository.getIdByUsername(mobile);
