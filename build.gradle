@@ -25,6 +25,7 @@ dependencies {
 //	compileOnly 'org.projectlombok:lombok'
 //	annotationProcessor 'org.projectlombok:lombok'
 //	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'javax.validation:validation-api:2.0.1.Final'
@@ -39,8 +40,11 @@ dependencies {
     implementation 'mysql:mysql-connector-java:5.1.48'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.hibernate:hibernate-validator-annotation-processor:6.1.6.Final'
-//	compile group: 'org.glassfish.main.bean-validator-cdi', name: 'bean-validator-cdi', version: '5.1.0'
-////Thanks for using https://jar-download.com
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
 
 }
 
